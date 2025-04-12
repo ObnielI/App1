@@ -1,0 +1,465 @@
+import React, { useState } from 'react';
+import { User, Calendar, MapPin, Home, Link, Users, Edit, X, Plus, Search, Baby } from 'lucide-react';
+
+const FamilyNetworkApp = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [familyMembers, setFamilyMembers] = useState([
+    {
+      id: 1,
+      name: 'John Smith',
+      image: '/api/placeholder/300/300?text=John',
+      dob: '1970-04-15',
+      birthPlace: 'Boston, MA',
+      currentCity: 'Seattle, WA',
+      socialMedia: [
+        { platform: 'Facebook', url: 'https://facebook.com/johnsmith' },
+        { platform: 'Instagram', url: 'https://instagram.com/johnsmith' }
+      ],
+      role: 'parent',
+      parentType: 'Father',
+      comments: 'Loves fishing and woodworking. Makes the best pancakes for breakfast.',
+      siblings: ['Jane Smith', 'Robert Smith'],
+      children: ['Emily Smith', 'Michael Smith']
+    },
+    {
+      id: 2,
+      name: 'Mary Smith',
+      image: '/api/placeholder/300/300?text=Mary',
+      dob: '1972-08-22',
+      birthPlace: 'Chicago, IL',
+      currentCity: 'Seattle, WA',
+      socialMedia: [
+        { platform: 'Facebook', url: 'https://facebook.com/marysmith' },
+        { platform: 'LinkedIn', url: 'https://linkedin.com/in/marysmith' }
+      ],
+      role: 'parent',
+      parentType: 'Mother',
+      comments: 'Award-winning gardener. Loves to travel and take photographs.',
+      siblings: ['Sarah Johnson', 'Tom Johnson'],
+      children: ['Emily Smith', 'Michael Smith']
+    },
+    {
+      id: 3,
+      name: 'Emily Smith',
+      image: '/api/placeholder/300/300?text=Emily',
+      dob: '1998-05-10',
+      birthPlace: 'Seattle, WA',
+      currentCity: 'Portland, OR',
+      socialMedia: [
+        { platform: 'Instagram', url: 'https://instagram.com/emilysmith' },
+        { platform: 'Twitter', url: 'https://twitter.com/emilysmith' }
+      ],
+      role: 'child',
+      comments: 'Studying Biology at Portland State. Loves hiking and playing guitar.',
+      siblings: ['Michael Smith'],
+      children: []
+    },
+    {
+      id: 4,
+      name: 'Michael Smith',
+      image: '/api/placeholder/300/300?text=Michael',
+      dob: '2001-11-03',
+      birthPlace: 'Seattle, WA',
+      currentCity: 'Boston, MA',
+      socialMedia: [
+        { platform: 'Instagram', url: 'https://instagram.com/michaelsmith' },
+        { platform: 'TikTok', url: 'https://tiktok.com/@michaelsmith' }
+      ],
+      role: 'child',
+      comments: 'Computer Science student at MIT. Basketball enthusiast and amateur chef.',
+      siblings: ['Emily Smith'],
+      children: []
+    }
+  ]);
+  
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [newMember, setNewMember] = useState({
+    name: '',
+    image: '/api/placeholder/300/300?text=New+Member',
+    dob: '',
+    birthPlace: '',
+    currentCity: '',
+    socialMedia: [{ platform: '', url: '' }],
+    role: 'other',
+    parentType: '',
+    comments: '',
+    siblings: [],
+    children: []
+  });
+
+  const filteredMembers = familyMembers.filter(member => 
+    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.currentCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    member.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleAddMember = () => {
+    if (newMember.name.trim() === '') return;
+    
+    if (editingMember) {
+      setFamilyMembers(familyMembers.map(member => 
+        member.id === editingMember.id ? {...newMember, id: member.id} : member
+      ));
+      setEditingMember(null);
+    } else {
+      setFamilyMembers([...familyMembers, {...newMember, id: Date.now()}]);
+    }
+    
+    setNewMember({
+      name: '',
+      image: '/api/placeholder/300/300?text=New+Member',
+      dob: '',
+      birthPlace: '',
+      currentCity: '',
+      socialMedia: [{ platform: '', url: '' }],
+      role: 'other',
+      parentType: '',
+      comments: '',
+      siblings: [],
+      children: []
+    });
+    setShowAddForm(false);
+  };
+
+  const handleEdit = (member) => {
+    setEditingMember(member);
+    setNewMember({...member});
+    setShowAddForm(true);
+  };
+
+  const handleDelete = (id) => {
+    setFamilyMembers(familyMembers.filter(member => member.id !== id));
+  };
+
+  const handleAddSocialMedia = () => {
+    setNewMember({
+      ...newMember,
+      socialMedia: [...newMember.socialMedia, { platform: '', url: '' }]
+    });
+  };
+
+  const handleRemoveSocialMedia = (index) => {
+    const updatedSocialMedia = [...newMember.socialMedia];
+    updatedSocialMedia.splice(index, 1);
+    setNewMember({
+      ...newMember,
+      socialMedia: updatedSocialMedia
+    });
+  };
+
+  const handleSocialMediaChange = (index, field, value) => {
+    const updatedSocialMedia = [...newMember.socialMedia];
+    updatedSocialMedia[index] = {
+      ...updatedSocialMedia[index],
+      [field]: value
+    };
+    setNewMember({
+      ...newMember,
+      socialMedia: updatedSocialMedia
+    });
+  };
+
+  return (
+    <div className="p-6 max-w-4xl mx-auto bg-white rounded-xl shadow-md">
+      <h1 className="text-3xl font-bold text-center mb-6">Family Network</h1>
+      
+      <div className="mb-6 flex space-x-2">
+        <div className="relative flex-grow">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search family members..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border rounded-md"
+          />
+        </div>
+        <button
+          onClick={() => {
+            setEditingMember(null);
+            setNewMember({
+              name: '',
+              image: '/api/placeholder/300/300?text=New+Member',
+              dob: '',
+              birthPlace: '',
+              currentCity: '',
+              socialMedia: [{ platform: '', url: '' }],
+              role: 'other',
+              parentType: '',
+              comments: '',
+              siblings: [],
+              children: []
+            });
+            setShowAddForm(true);
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
+        >
+          <Plus className="mr-1" size={18} /> Add Member
+        </button>
+      </div>
+
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">{editingMember ? 'Edit Family Member' : 'Add Family Member'}</h2>
+              <button onClick={() => setShowAddForm(false)} className="text-gray-500 hover:text-gray-700">
+                <X />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Name</label>
+                <input
+                  type="text"
+                  value={newMember.name}
+                  onChange={(e) => setNewMember({...newMember, name: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  placeholder="Full Name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Role</label>
+                <select
+                  value={newMember.role}
+                  onChange={(e) => setNewMember({...newMember, role: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                >
+                  <option value="parent">Parent</option>
+                  <option value="child">Child</option>
+                  <option value="sibling">Sibling</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              
+              {newMember.role === 'parent' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Parent Type</label>
+                  <select
+                    value={newMember.parentType}
+                    onChange={(e) => setNewMember({...newMember, parentType: e.target.value})}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  >
+                    <option value="">Select Type</option>
+                    <option value="Mother">Mother</option>
+                    <option value="Father">Father</option>
+                  </select>
+                </div>
+              )}
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date of Birth</label>
+                <input
+                  type="date"
+                  value={newMember.dob}
+                  onChange={(e) => setNewMember({...newMember, dob: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Birth Place</label>
+                <input
+                  type="text"
+                  value={newMember.birthPlace}
+                  onChange={(e) => setNewMember({...newMember, birthPlace: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  placeholder="City, State"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Current City</label>
+                <input
+                  type="text"
+                  value={newMember.currentCity}
+                  onChange={(e) => setNewMember({...newMember, currentCity: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  placeholder="City, State"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Social Media</label>
+                {newMember.socialMedia.map((social, index) => (
+                  <div key={index} className="flex space-x-2 mb-2">
+                    <input
+                      type="text"
+                      value={social.platform}
+                      onChange={(e) => handleSocialMediaChange(index, 'platform', e.target.value)}
+                      className="flex-1 rounded-md border-gray-300 shadow-sm p-2 border"
+                      placeholder="Platform (e.g., Facebook)"
+                    />
+                    <input
+                      type="text"
+                      value={social.url}
+                      onChange={(e) => handleSocialMediaChange(index, 'url', e.target.value)}
+                      className="flex-1 rounded-md border-gray-300 shadow-sm p-2 border"
+                      placeholder="URL"
+                    />
+                    <button
+                      onClick={() => handleRemoveSocialMedia(index)}
+                      className="bg-red-100 text-red-600 p-2 rounded-md hover:bg-red-200"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={handleAddSocialMedia}
+                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                >
+                  <Plus size={16} className="mr-1" /> Add Social Media
+                </button>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Comments</label>
+                <textarea
+                  value={newMember.comments}
+                  onChange={(e) => setNewMember({...newMember, comments: e.target.value})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  rows="3"
+                  placeholder="Interests, hobbies, fun facts..."
+                ></textarea>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Siblings (comma separated)</label>
+                <input
+                  type="text"
+                  value={newMember.siblings.join(', ')}
+                  onChange={(e) => setNewMember({...newMember, siblings: e.target.value.split(',').map(s => s.trim())})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  placeholder="Name1, Name2, ..."
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Children (comma separated)</label>
+                <input
+                  type="text"
+                  value={newMember.children.join(', ')}
+                  onChange={(e) => setNewMember({...newMember, children: e.target.value.split(',').map(s => s.trim())})}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 border"
+                  placeholder="Name1, Name2, ..."
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddMember}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  {editingMember ? 'Update' : 'Add'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredMembers.map((member) => (
+          <div key={member.id} className="bg-gray-50 rounded-lg shadow-md overflow-hidden">
+            <div className="relative">
+              <img 
+                src={member.image} 
+                alt={member.name} 
+                className="w-full h-64 object-cover"
+              />
+              <div className="absolute top-2 right-2 flex space-x-1">
+                <button
+                  onClick={() => handleEdit(member)}
+                  className="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                >
+                  <Edit size={16} className="text-blue-600" />
+                </button>
+                <button
+                  onClick={() => handleDelete(member.id)}
+                  className="bg-white p-2 rounded-full shadow hover:bg-gray-100"
+                >
+                  <X size={16} className="text-red-600" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4">
+              <h2 className="text-xl font-bold mb-1">{member.name}</h2>
+              {member.role === 'parent' && (
+                <p className="text-gray-600 mb-2">{member.parentType}</p>
+              )}
+              
+              <div className="space-y-2 mt-3">
+                <div className="flex items-center text-gray-700">
+                  <Calendar size={16} className="mr-2" />
+                  <span>Born: {new Date(member.dob).toLocaleDateString()}</span>
+                </div>
+                
+                <div className="flex items-center text-gray-700">
+                  <MapPin size={16} className="mr-2" />
+                  <span>Birth Place: {member.birthPlace}</span>
+                </div>
+                
+                <div className="flex items-center text-gray-700">
+                  <Home size={16} className="mr-2" />
+                  <span>Lives in: {member.currentCity}</span>
+                </div>
+                
+                {member.socialMedia.length > 0 && member.socialMedia[0].platform !== '' && (
+                  <div className="flex items-center text-gray-700">
+                    <Link size={16} className="mr-2" />
+                    <div>
+                      {member.socialMedia.map((social, index) => (
+                        <span key={index} className="mr-2 inline-block">
+                          {social.platform}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {member.siblings.length > 0 && member.siblings[0] !== '' && (
+                  <div className="flex items-start text-gray-700">
+                    <Users size={16} className="mr-2 mt-1" />
+                    <div>
+                      <span className="font-medium">Siblings: </span>
+                      {member.siblings.join(', ')}
+                    </div>
+                  </div>
+                )}
+                
+                {member.children.length > 0 && member.children[0] !== '' && (
+                  <div className="flex items-start text-gray-700">
+                    <Baby size={16} className="mr-2 mt-1" />
+                    <div>
+                      <span className="font-medium">Children: </span>
+                      {member.children.join(', ')}
+                    </div>
+                  </div>
+                )}
+                
+                {member.comments && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <p className="text-gray-700">{member.comments}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default FamilyNetworkApp;
